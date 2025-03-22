@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas 160x160</title>
+
+
+    <script src="https://unpkg.com/brain.js@2.0.0-beta.24/dist/browser.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="utils.js"></script>
+    <script src="nnet.js"></script>
+
+
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+        }
+
+        .button-container {
+            margin: 10px 5px;
+        }
+
+        #demo,.btnContainer {
+            margin: 10px 5px;
+        }
+
+        .myBtn {
+            margin: 0 5px;
+            padding: 5px 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        canvas {
+            border: 1px solid #000;
+            margin: 0 10px;
+        }
+
+        .side-btn {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+<h1>Deep Learning with brain.js</h1>
+<div class="btnContainer">
+    <label for="activationFn">Activation Fn:</label>
+    <select id="activationFn">
+        <option value="sigmoid">sigmoid</option>
+        <option value="relu">relu</option>
+        <option value="leaky-relu">leaky-relu</option>
+        <option value="tanh">tanh</option>
+    </select><br><br>
+
+
+    <label for="layers">Hidden Layers:</label>
+    <input type="text"  id="layers" value="[64,32]"/>
+
+</div>
+<div class="button-container">
+    <input type="button" value="A" class="myBtn" onclick="drawGrid(charA, this)"/>
+    <input type="button" value="B" class="myBtn" onclick="drawGrid(charB, this)"/>
+    <input type="button" value="C" class="myBtn" onclick="drawGrid(charC, this)"/>
+    <input type="button" value="D" class="myBtn" onclick="drawGrid(charD, this)"/>
+    <input type="button" value="E" class="myBtn" onclick="drawGrid(charE, this)"/>
+    <input type="button" value="F" class="myBtn" onclick="drawGrid(charF, this)"/>
+</div>
+
+
+<div class="container">
+    <input type="button" value="⬅ Left" class="side-btn" id="leftButton">
+    <canvas id="myCanvas" width="160" height="160"></canvas>
+    <input type="button" value="Right ➡" class="side-btn" id="rightButton">
+</div>
+
+<div class="btnContainer">
+    <input type="button" id="addBtn" value="add to training">
+    <select id="hexDropdown">
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+        <option value="E">E</option>
+        <option value="F">F</option>
+    </select>
+    <br><br>
+    <input type="button" id="btn1" value="Training"><br><br>
+    <input type="button" id="btn2" value="Test"><br>
+    <div id="demo"></div>
+</div>
+<div class="container">
+    <div>
+    <textarea id="memo" rows="10" cols="20" placeholder="Rules..."></textarea>
+
+    </div>
+    <div>=&gt;</div>
+    <textarea id="results" rows="10" cols="20" placeholder="Results..."></textarea>
+</div>
+<div>
+    <input type="button" id="btnClear" value="Clear">
+</div>
+<script>
+    let currentGrid = [];
+    const cellSize = 20;
+    let nnet = null;
+
+
+    $(document).ready(function () {
+
+        drawGrid(charA);
+        var t = localStorage.getItem('trainings');
+        if (t) {
+            var oTextArea = document.getElementById("memo");
+            oTextArea.value = t;
+        }
+
+        $('#btn1').click(function () {
+
+            var layers = $("#layers").val();
+            var activationFn = $("#activationFn").val();
+            var config = {
+                activation : activationFn,      // ReLU für bessere Leistung
+            };
+            if (layers) {
+                config.hiddenLayers = JSON.parse(layers.trim());
+            }
+            nnet = new Nnet();
+            var oTextArea = document.getElementById("memo");
+            nnet.init(oTextArea.value);
+
+        });
+
+        $('#btn2').click(function () {
+            let result = nnet.run(currentGrid);
+            $('#results').val(convertResults(result));
+
+        });
+    });
+
+
+    function drawGrid(grid, _this) {
+        if (typeof (_this) !== 'undefined') {
+            document.getElementById("hexDropdown").value = _this.value;
+        }
+
+        currentGrid = JSON.parse(JSON.stringify(grid));
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let row = 0; row < grid.length; row++) {
+            for (let col = 0; col < grid[ row ].length; col++) {
+                ctx.fillStyle = grid[ row ][ col ] === 1 ? "blue" : "white";
+                ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+                ctx.strokeRect(col * cellSize, row * cellSize, cellSize, cellSize);
+            }
+        }
+    }
+
+
+    document.getElementById("addBtn").addEventListener("click", function (event) {
+        var st = packArr(currentGrid);
+        var ch = document.getElementById("hexDropdown").value;
+        var oTextArea = document.getElementById("memo");
+        oTextArea.value += (st + '=>' + ch + '\n');
+        localStorage.setItem('trainings', oTextArea.value);
+    });
+
+
+    document.getElementById("btnClear").addEventListener("click", function (event) {
+        var oTextArea = document.getElementById("memo");
+        oTextArea.value = '';
+        localStorage.setItem('trainings', oTextArea.value);
+    });
+
+    document.getElementById("rightButton").addEventListener("click", function (event) {
+        currentGrid = shiftRight(currentGrid);
+        drawGrid(currentGrid);
+    });
+
+
+    document.getElementById("leftButton").addEventListener("click", function (event) {
+        currentGrid = shiftLeft(currentGrid);
+        drawGrid(currentGrid);
+    });
+
+    document.getElementById("myCanvas").addEventListener("click", function (event) {
+        const canvas = event.target;
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const col = Math.floor(x / cellSize);
+        const row = Math.floor(y / cellSize);
+
+        if (row >= 0 && row < currentGrid.length && col >= 0 && col < currentGrid[ row ].length) {
+            currentGrid[ row ][ col ] = currentGrid[ row ][ col ] === 1 ? 0 : 1;
+            drawGrid(currentGrid);
+        }
+    });
+
+    const charA = [
+        [0, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0]
+    ];
+
+    const charB = [
+        [1, 1, 1, 1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 1, 0, 0, 0],
+        [1, 0, 0, 0, 1, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 1, 0, 0, 0],
+        [1, 0, 0, 0, 1, 0, 0, 0],
+        [1, 0, 0, 0, 1, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0]
+    ];
+
+    const charC = [
+        [0, 1, 1, 1, 1, 0, 0, 0],
+        [1, 0, 0, 0, 0, 1, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 1, 0, 0],
+        [0, 1, 1, 1, 1, 0, 0, 0]
+    ];
+
+    const charD = [
+        [1, 1, 1, 0, 0, 0, 0, 0],
+        [1, 0, 0, 1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 1, 0, 0, 0],
+        [1, 0, 0, 0, 0, 1, 0, 0],
+        [1, 0, 0, 0, 0, 1, 0, 0],
+        [1, 0, 0, 0, 1, 0, 0, 0],
+        [1, 0, 0, 1, 0, 0, 0, 0],
+        [1, 1, 1, 0, 0, 0, 0, 0]
+    ];
+
+    const charE = [
+        [1, 1, 1, 1, 1, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 0]
+    ];
+
+    const charF = [
+        [1, 1, 1, 1, 1, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0]
+    ];
+
+
+</script>
+</body>
+</html>
