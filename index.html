@@ -37,7 +37,7 @@
         }
 
         .myBtn {
-            margin: 0 5px;
+            margin: 5px; 5px;
             padding: 5px 10px;
             font-size: 16px;
             cursor: pointer;
@@ -89,7 +89,7 @@
 </div>
 
 <div class="btnContainer">
-    <input type="button" id="addBtn" value="Add to training">
+    <input type="button" id="addBtn" class="myBtn" value="Add to training">
     <select id="hexDropdown">
         <option value="A">A</option>
         <option value="B">B</option>
@@ -105,19 +105,19 @@
 <div class="container">
     <div>
         <label for="memo">Training Data:</label><br>
-        <textarea id="memo" rows="10" cols="22" placeholder="Rules..."></textarea> <br>
+        <textarea id="memo" rows="10" cols="20" placeholder="Rules..."></textarea> <br>
         <div>
-            <input type="button" id="btnClear" value="Clear">
-            <input type="button" id="btnGetDefault" value="GetDefault">
+            <input type="button" id="btnClear" class="myBtn" value="Clear">
+            <input type="button" id="btnGetDefault" class="myBtn" value="GetDefault">
         </div>
     </div>
     <div>=&gt;</div>
     <div>
         <label for="results">Output Console:</label><br>
-        <textarea id="results" rows="10" cols="22" placeholder="Results..."></textarea>
+        <textarea id="results" rows="10" cols="20" placeholder="Results..."></textarea>
         <div>
-            <input type="button" id="btn1" value="Training">
-            <input type="button" id="btn2" value="Test">
+            <input type="button" id="btn1" class="myBtn" value="Training">
+            <input type="button" id="btn2" class="myBtn" value="Test">
         </div>
     </div>
 </div>
