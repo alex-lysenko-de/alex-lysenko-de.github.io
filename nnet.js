@@ -14,10 +14,11 @@ function Nnet(config = {}) {
 
         var trainingData = text2trainingArr(text);
         _this.net = new brain.NeuralNetwork(Object.assign({},config,defaultConfig));
-        _this.net.train(trainingData, {
+        let res = _this.net.train(trainingData, {
             iterations : 20000,  // Maximale Durchläufe
             errorThresh : 0.005, // Stoppt, wenn Fehler unter 0.5%
         });
+        return res;
     };
 
     this.run = function (a) {

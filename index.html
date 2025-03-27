@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canvas 160x160</title>
+    <title>Simple Letter Detection with Brain.js</title>
 
 
     <script src="https://unpkg.com/brain.js@2.0.0-beta.24/dist/browser.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="utils.js"></script>
     <script src="nnet.js"></script>
-
 
 
     <style>
@@ -33,7 +32,7 @@
             margin: 10px 5px;
         }
 
-        #demo,.btnContainer {
+        #demo, .btnContainer {
             margin: 10px 5px;
         }
 
@@ -58,7 +57,7 @@
     </style>
 </head>
 <body>
-<h1>Deep Learning with brain.js</h1>
+<h1>Simple Letter Detection with <a href="https://brain.js.org/#/examples">brain.js</a></h1>
 <div class="btnContainer">
     <label for="activationFn">Activation Fn:</label>
     <select id="activationFn">
@@ -70,7 +69,7 @@
 
 
     <label for="layers">Hidden Layers:</label>
-    <input type="text"  id="layers" value="[64,32]"/>
+    <input type="text" id="layers" value="[64,32]" title="You can also try [32] or [128,64,32]"/>
 
 </div>
 <div class="button-container">
@@ -90,7 +89,7 @@
 </div>
 
 <div class="btnContainer">
-    <input type="button" id="addBtn" value="add to training">
+    <input type="button" id="addBtn" value="Add to training">
     <select id="hexDropdown">
         <option value="A">A</option>
         <option value="B">B</option>
@@ -100,21 +99,29 @@
         <option value="F">F</option>
     </select>
     <br><br>
-    <input type="button" id="btn1" value="Training"><br><br>
-    <input type="button" id="btn2" value="Test"><br>
+
     <div id="demo"></div>
 </div>
 <div class="container">
     <div>
-    <textarea id="memo" rows="10" cols="20" placeholder="Rules..."></textarea>
-
+        <label for="memo">Training Data:</label><br>
+        <textarea id="memo" rows="10" cols="22" placeholder="Rules..."></textarea> <br>
+        <div>
+            <input type="button" id="btnClear" value="Clear">
+            <input type="button" id="btnGetDefault" value="GetDefault">
+        </div>
     </div>
     <div>=&gt;</div>
-    <textarea id="results" rows="10" cols="20" placeholder="Results..."></textarea>
+    <div>
+        <label for="results">Output Console:</label><br>
+        <textarea id="results" rows="10" cols="22" placeholder="Results..."></textarea>
+        <div>
+            <input type="button" id="btn1" value="Training">
+            <input type="button" id="btn2" value="Test">
+        </div>
+    </div>
 </div>
-<div>
-    <input type="button" id="btnClear" value="Clear">
-</div>
+
 <script>
     let currentGrid = [];
     const cellSize = 20;
@@ -124,31 +131,38 @@
     $(document).ready(function () {
 
         drawGrid(charA);
-        var t = localStorage.getItem('trainings');
-        if (t) {
-            var oTextArea = document.getElementById("memo");
-            oTextArea.value = t;
-        }
+        let t = localStorage.getItem('trainings');
+
+        var oTextArea = document.getElementById("memo");
+        oTextArea.value = t??'';
+
 
         $('#btn1').click(function () {
-
+            $('#results').val('training...\nplease wait!!!');
             var layers = $("#layers").val();
             var activationFn = $("#activationFn").val();
             var config = {
-                activation : activationFn,      // ReLU für bessere Leistung
+                activation : activationFn,
             };
             if (layers) {
                 config.hiddenLayers = JSON.parse(layers.trim());
             }
             nnet = new Nnet();
             var oTextArea = document.getElementById("memo");
-            nnet.init(oTextArea.value);
+
+            let res = nnet.init(oTextArea.value);
+            let list = Object.entries(res).map(([key, value]) => {
+                let result = `${key}: ${value}`;
+                return result.substring(0, 20);
+            });
+            $('#results').val('done!\n' + list.join('\n'));
 
         });
 
         $('#btn2').click(function () {
             let result = nnet.run(currentGrid);
-            $('#results').val(convertResults(result));
+            let st = convertResults(result);
+            $('#results').val(st);
 
         });
     });
@@ -179,7 +193,9 @@
         var st = packArr(currentGrid);
         var ch = document.getElementById("hexDropdown").value;
         var oTextArea = document.getElementById("memo");
+        var oResults = document.getElementById("results");
         oTextArea.value += (st + '=>' + ch + '\n');
+        oResults.value = (JSON.stringify(currentGrid)).replaceAll('],', '],\n') + ';';
         localStorage.setItem('trainings', oTextArea.value);
     });
 
@@ -189,6 +205,13 @@
         oTextArea.value = '';
         localStorage.setItem('trainings', oTextArea.value);
     });
+
+    document.getElementById("btnGetDefault").addEventListener("click", function (event) {
+        var oTextArea = document.getElementById("memo");
+        oTextArea.value = sDefaultTrainingsData;
+        localStorage.setItem('trainings', oTextArea.value);
+    });
+
 
     document.getElementById("rightButton").addEventListener("click", function (event) {
         currentGrid = shiftRight(currentGrid);
@@ -228,61 +251,75 @@
     ];
 
     const charB = [
-        [1, 1, 1, 1, 0, 0, 0, 0],
-        [1, 0, 0, 0, 1, 0, 0, 0],
-        [1, 0, 0, 0, 1, 0, 0, 0],
-        [1, 1, 1, 1, 0, 0, 0, 0],
-        [1, 0, 0, 0, 1, 0, 0, 0],
-        [1, 0, 0, 0, 1, 0, 0, 0],
-        [1, 0, 0, 0, 1, 0, 0, 0],
-        [1, 1, 1, 1, 0, 0, 0, 0]
-    ];
+        [0, 1, 1, 1, 1, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 1, 1, 1, 1, 0, 0]];
 
     const charC = [
-        [0, 1, 1, 1, 1, 0, 0, 0],
-        [1, 0, 0, 0, 0, 1, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 1, 0, 0],
-        [0, 1, 1, 1, 1, 0, 0, 0]
-    ];
+        [0, 0, 1, 1, 1, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 0, 1, 1, 1, 1, 0, 0]];
 
     const charD = [
-        [1, 1, 1, 0, 0, 0, 0, 0],
-        [1, 0, 0, 1, 0, 0, 0, 0],
-        [1, 0, 0, 0, 1, 0, 0, 0],
-        [1, 0, 0, 0, 0, 1, 0, 0],
-        [1, 0, 0, 0, 0, 1, 0, 0],
-        [1, 0, 0, 0, 1, 0, 0, 0],
-        [1, 0, 0, 1, 0, 0, 0, 0],
-        [1, 1, 1, 0, 0, 0, 0, 0]
-    ];
+        [0, 1, 1, 1, 1, 0, 0, 0],
+        [0, 1, 0, 0, 0, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 1, 0, 0],
+        [0, 1, 1, 1, 1, 0, 0, 0]];
+
 
     const charE = [
-        [1, 1, 1, 1, 1, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1, 0, 0, 0]
-    ];
+        [0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0]];
 
     const charF = [
-        [1, 1, 1, 1, 1, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0]
-    ];
+        [0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0]];
 
-
+    const sDefaultTrainingsData =
+        "30488484FC848484=>A\n" +
+        "182442427E424242=>A\n" +
+        "0C1221213F212121=>A\n" +
+        "F88484F8848484F8=>B\n" +
+        "7C42427C4242427C=>B\n" +
+        "3E21213E2121213E=>B\n" +
+        "7884808080808478=>C\n" +
+        "3C4240404040423C=>C\n" +
+        "1E2120202020211E=>C\n" +
+        "F0888484848488F0=>D\n" +
+        "7844424242424478=>D\n" +
+        "3C2221212121223C=>D\n" +
+        "FC8080F8808080FC=>E\n" +
+        "7E40407C4040407E=>E\n" +
+        "3F20203E2020203F=>E\n" +
+        "FC8080F880808080=>F\n" +
+        "7E40407C40404040=>F\n" +
+        "3F20203E20202020=>F\n";
 </script>
 </body>
 </html>

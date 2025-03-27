@@ -1,6 +1,5 @@
 function shiftLeft(arr) {
     return arr.map(row => {
-        // Убираем последний элемент и вставляем его в начало
         var a = row[ 0 ];
         var aa = row.slice(1, row.length);
         aa.push(a);
@@ -10,7 +9,6 @@ function shiftLeft(arr) {
 
 function shiftRight(arr) {
     return arr.map(row => {
-        // Убираем последний элемент и вставляем его в начало
         return [row[ row.length - 1 ], ...row.slice(0, row.length - 1)];
     });
 }
@@ -18,10 +16,14 @@ function shiftRight(arr) {
 
 function packArr(arr2d) {
     return arr2d.map(row => {
-        const binaryString = row.join(""); // Преобразуем массив в строку битов
-        const decimalValue = parseInt(binaryString, 2); // Преобразуем строку в число
-        return decimalValue.toString(16).toUpperCase(); // Преобразуем в HEX и делаем буквы заглавными
-    }).join(""); // Объединяем все элементы в строку
+        const binaryString = row.join("");
+        const decimalValue = parseInt(binaryString, 2);
+        let st = decimalValue.toString(16).toUpperCase();
+        if (st.length < 2) {
+            st = '0' + st;
+        }
+        return st;
+    }).join("");
 }
 
 function unpackArr(hexString) {
@@ -37,7 +39,12 @@ function unpackArr(hexString) {
 }
 
 function convertResults(obj) {
-    return Object.entries(obj)
-        .map(([key, value]) => `${key}:${Math.round(value * 100)}%`)
-        .join(" \n ") + " \n";
+    const listOfValues = Object.entries(obj).map(([key, value]) => Math.round(value * 100));
+    const maxValue = Math.max(...listOfValues);
+    let list = Object.entries(obj).map(([key, value]) => {
+        let roundVal = Math.round(value * 100);
+        let arrow = (roundVal === maxValue) ? ' <--- ' : '';
+        return `${key}:${roundVal}%${arrow}`;
+    });
+    return list.join('\n');
 }
