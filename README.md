@@ -1,7 +1,5 @@
-<img src="https://avatars.githubusercontent.com/u/203380048?v=4" width="200" alt="Alexander Lysenko" align="left" />
-
 # 👋 Hi, I'm Alexander Lysenko
-
+<img src="https://avatars.githubusercontent.com/u/203380048?v=4" width="200" alt="Alexander Lysenko" align="left" />
 **Software Developer** with 20+ years of experience in building corporate systems, web applications, and automation tools.  
 Specializing in web development (PHP, Symfony, JavaScript, Vue.js, MySQL, Angular) and passionate about neural networks and Python.  
 
