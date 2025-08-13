@@ -8,7 +8,7 @@ Specializing in web development (PHP, Symfony, JavaScript, Vue.js, MySQL, Angula
 🎓 Graduated from Zaporizhzhia State Engineering Academy (5-year program, Software Engineering degree).  
 📜 Diploma officially recognized in Germany.  
 
----
+
 
 ## 🛠 Key Skills
 
