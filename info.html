@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AES-128-ECB Decryptor (Info.txt)</title>
+  <!-- CryptoJS from CDN. If you need offline, replace these with locally inlined builds. -->
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/aes.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/mode-ecb.min.js"></script>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; padding: 1rem; background:#0b0d10; color:#e8e8e8; }
+    .card { max-width: 920px; margin: 0 auto; background:#12161b; border:1px solid #1f2730; border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+    .hdr { padding: 1rem 1.25rem; border-bottom: 1px solid #1f2730; }
+    .hdr h1 { font-size: 1.15rem; margin: 0; letter-spacing: .2px; }
+    .body { padding: 1rem 1.25rem; }
+    .muted { opacity: .7; font-size: .9rem; }
+    pre#out { white-space: pre-wrap; word-break: break-word; background:#0d1116; padding: 1rem; border-radius: 12px; min-height: 180px; overflow-x: auto; }
+    .err { color:#ff8a8a; }
+    .ok  { color:#9BE29B; }
+    code { background:#0d1116; padding: .1rem .35rem; border-radius: 6px; }
+    .small { font-size:.85rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="hdr">
+      <h1>AES‑128‑ECB Decryptor for <code>Info.txt</code></h1>
+    </div>
+    <div class="body">
+      <p class="muted small">
+        This page expects a 128‑bit AES key (hex) in the URL hash like <code>#k=&lt;hexkey&gt;</code>.
+        It decrypts the embedded Base64 ciphertext (PKCS7 padded, AES‑ECB) and shows the result below.
+      </p>
+
+      <!-- ▼▼ Paste your Base64 ciphertext from Info.base64.txt between these tags ▼▼ -->
+      <script id="ciphertext-b64" type="application/json">
+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
+      </script>
+      <!-- ▲▲ End of ciphertext slot ▲▲ -->
+
+      <p id="status" class="muted">Waiting…</p>
+      <pre id="out"></pre>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const statusEl = document.getElementById('status');
+  const outEl = document.getElementById('out');
+
+  function getKeyFromHash(){
+    // Accept patterns like "#k=abcd" or "#k=...&..." (URLSearchParams-compatible)
+    const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+    const params = new URLSearchParams(hash);
+    const keyHex = params.get('k') || '';
+    return (keyHex || '').trim();
+  }
+
+  function hexToWordArray(hexStr){
+    try {
+      return CryptoJS.enc.Hex.parse(hexStr);
+    } catch(e){
+      return null;
+    }
+  }
+
+  function getCiphertextB64(){
+    const node = document.getElementById('ciphertext-b64');
+    return (node && node.textContent || '').trim();
+  }
+
+  function decrypt(){
+    const keyHex = getKeyFromHash();
+    if(!keyHex){
+      statusEl.textContent = 'Provide key in URL hash, e.g.  index.html#k=<hex>';
+      statusEl.className = 'muted err';
+      return;
+    }
+    if(!/^[0-9a-fA-F]{32}$/.test(keyHex)){
+      statusEl.textContent = 'Key must be 32 hex chars (128-bit). Got: ' + keyHex.length + ' chars';
+      statusEl.className = 'muted err';
+      return;
+    }
+
+    const key = hexToWordArray(keyHex);
+    const b64 = getCiphertextB64();
+    if(!b64){
+      statusEl.textContent = 'Ciphertext Base64 is empty. Paste content from Info.base64.txt.';
+      statusEl.className = 'muted err';
+      return;
+    }
+
+    try {
+      const encryptedWA = CryptoJS.enc.Base64.parse(b64);
+      const decrypted = CryptoJS.AES.decrypt(
+        { ciphertext: encryptedWA },
+        key,
+        { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 }
+      );
+      const plaintext = CryptoJS.enc.Utf8.stringify(decrypted);
+      if(!plaintext){
+        statusEl.textContent = 'Decryption produced empty/invalid UTF‑8. Check your key.';
+        statusEl.className = 'muted err';
+        outEl.textContent = '';
+        return;
+      }
+      statusEl.textContent = 'Decryption OK.';
+      statusEl.className = 'muted ok';
+      outEl.textContent = plaintext;
+    } catch (e){
+      console.error(e);
+      statusEl.textContent = 'Error during decryption. See console.';
+      statusEl.className = 'muted err';
+    }
+  }
+
+  window.addEventListener('hashchange', decrypt);
+  window.addEventListener('DOMContentLoaded', decrypt);
+})();
+</script>
+</body>
+</html>
