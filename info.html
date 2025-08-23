@@ -52,9 +52,11 @@ oAy+MiOAawJXUUbhGE528/ZYojDsaNln3sOozQKVq4XoxyWfngV8fVrnppJNMTAW/fZNe11XZCASFNDs
 
   function getKeyFromHash(){
     // Accept patterns like "#k=abcd" or "#k=...&..." (URLSearchParams-compatible)
-    const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
-    const params = new URLSearchParams(hash);
-    const keyHex = params.get('k') || '';
+	
+	const keyHex =  new URLSearchParams(window.location.search).get("k") || '';
+    //const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+    //const params = new URLSearchParams(hash);
+    //const keyHex = params.get('k') || '';
     return (keyHex || '').trim();
   }
 
