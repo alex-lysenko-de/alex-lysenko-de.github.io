@@ -30,7 +30,7 @@
     </div>
     <div class="body">
       <p class="muted small">
-        This page expects a 128‑bit AES key (hex) in the URL hash like <code>#k=&lt;hexkey&gt;</code>.
+        This page expects a 128‑bit AES key (hex) in the URL hash like <code>?k=&lt;hexkey&gt;</code>.
         It decrypts the embedded Base64 ciphertext (PKCS7 padded, AES‑ECB) and shows the result below.
       </p>
 
@@ -51,12 +51,9 @@ oAy+MiOAawJXUUbhGE528/ZYojDsaNln3sOozQKVq4XoxyWfngV8fVrnppJNMTAW/fZNe11XZCASFNDs
   const outEl = document.getElementById('out');
 
   function getKeyFromHash(){
-    // Accept patterns like "#k=abcd" or "#k=...&..." (URLSearchParams-compatible)
+    // Accept patterns like "?k=abcd" or "?k=...&..." (URLSearchParams-compatible)
 	
 	const keyHex =  new URLSearchParams(window.location.search).get("k") || '';
-    //const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
-    //const params = new URLSearchParams(hash);
-    //const keyHex = params.get('k') || '';
     return (keyHex || '').trim();
   }
 
@@ -76,7 +73,7 @@ oAy+MiOAawJXUUbhGE528/ZYojDsaNln3sOozQKVq4XoxyWfngV8fVrnppJNMTAW/fZNe11XZCASFNDs
   function decrypt(){
     const keyHex = getKeyFromHash();
     if(!keyHex){
-      statusEl.textContent = 'Provide key in URL hash, e.g.  index.html#k=<hex>';
+      statusEl.textContent = 'Provide key in URL, e.g.  index.html?k=<hex>';
       statusEl.className = 'muted err';
       return;
     }
